@@ -2,11 +2,17 @@ lockfileVersion: 5.3
 
 specifiers:
   '@cloudflare/workers-types': ^3.10.0
+  '@types/range-parser': ^1.2.4
+  range-parser: ^1.2.1
   typescript: ^4.6.4
   wrangler: 2.0.5
 
+dependencies:
+  range-parser: 1.2.1
+
 devDependencies:
   '@cloudflare/workers-types': 3.10.0
+  '@types/range-parser': 1.2.4
   typescript: 4.6.4
   wrangler: 2.0.5
 
@@ -180,6 +186,10 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    dev: true
+
+  /@types/range-parser/1.2.4:
+    resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==}
     dev: true
 
   /@types/stack-trace/0.0.29:
@@ -508,6 +518,11 @@ packages:
   /path-to-regexp/6.2.1:
     resolution: {integrity: sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==}
     dev: true
+
+  /range-parser/1.2.1:
+    resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
+    engines: {node: '>= 0.6'}
+    dev: false
 
   /rollup-plugin-inject/3.0.2:
     resolution: {integrity: sha512-ptg9PQwzs3orn4jkgXJ74bfs5vYz1NCZlSQMBUA0wKcGp5i5pA1AO3fOUEte8enhGUC+iapTCzEWw2jEFFUO/w==}
