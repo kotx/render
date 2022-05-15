@@ -8,6 +8,7 @@ Proxies readonly requests to [Cloudflare R2](https://developers.cloudflare.com/r
 - Forwards content headers (`content-type`, `content-encoding`, `content-language`, `content-disposition`)
 - Caches served files using the [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)
 - Range requests (currently R2 is bugged, does not accept ranges starting with 0)
+- Handles precondition headers (`if-match`, `if-none-match`)
 
 ## Setup
 

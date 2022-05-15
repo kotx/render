@@ -5,6 +5,10 @@ interface Env {
   CACHE_CONTROL: string
 }
 
+function hasBody(object: R2Object | R2ObjectBody): object is R2ObjectBody {
+  return (<R2ObjectBody>object).body !== undefined;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const allowedMethods = ["GET", "HEAD", "OPTIONS"];
@@ -27,13 +31,14 @@ export default {
       const path = url.pathname.substring(1);
 
       // Range handling (Currently bugged in R2- ranges starting with 0 will error)
-      let head: R2Object | null | undefined;
+      let file: R2Object | null | undefined;
       let range: R2Range | undefined;
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          head = await env.R2_BUCKET.head(path);
-          const parsedRanges = parseRange(head?.size || 0, rangeHeader);
+          file = await env.R2_BUCKET.head(path);
+          if (file === null) return new Response("File Not Found", { status: 404 });
+          const parsedRanges = parseRange(file?.size || 0, rangeHeader);
           if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1) {
             let firstRange = parsedRanges[0];
             range = {
@@ -49,25 +54,35 @@ export default {
 
       // Etag/If-(Not)-Match handling
       // R2 requires that etag checks must not contain quotes, and the S3 spec only allows one etag
-      // This silently ignores invalid or weak (W/) headers (R2 might handle that)
-      // const getHeaderEtag = (header: string | null) => header?.trim().replace(/^['"]|['"]$/g, "");
-      // const ifMatch = getHeaderEtag(request.headers.get("if-match"));
-      // const ifNoneMatch = getHeaderEtag(request.headers.get("if-none-match"));
+      // This silently ignores invalid or weak (W/) headers
+      const getHeaderEtag = (header: string | null) => header?.trim().replace(/^['"]|['"]$/g, "");
+      const ifMatch = getHeaderEtag(request.headers.get("if-match"));
+      const ifNoneMatch = getHeaderEtag(request.headers.get("if-none-match"));
 
-      // const options = { onlyIf: { etagMatches: ifMatch || undefined, etagDoesNotMatch: ifNoneMatch || undefined } };
+      if (ifMatch) {
+        file = await env.R2_BUCKET.get(path, { onlyIf: { etagMatches: ifMatch }, range });
 
-      const file = request.method === "HEAD" ? await env.R2_BUCKET.head(path) : await env.R2_BUCKET.get(path, { range });
+        if (file && !hasBody(file)) {
+          return new Response("Precondition Failed", { status: 412 });
+        }
+      }
+
+      if (ifNoneMatch) {
+        file = await env.R2_BUCKET.get(path, { onlyIf: { etagDoesNotMatch: ifNoneMatch }, range });
+        if (file && !hasBody(file)) {
+          return new Response(null, { status: 304 });
+        }
+      }
+
+      file ??= request.method === "HEAD"
+        ? await env.R2_BUCKET.head(path)
+        : await env.R2_BUCKET.get(path, { range });
+
       if (file === null) {
         return new Response("File Not Found", { status: 404 });
       }
 
-      function hasBody(object: R2Object | R2ObjectBody): object is R2ObjectBody {
-        return (<R2ObjectBody>object).body !== undefined;
-      }
-
-      const shouldSendBody = hasBody(file);
-
-      response = new Response(shouldSendBody ? file.body : null, {
+      response = new Response(hasBody(file) ? file.body : null, {
         status: (file?.size || 0) === 0 ? 204 : (range ? 206 : 200),
         headers: {
           "etag": file.httpEtag,
