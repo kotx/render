@@ -24,14 +24,24 @@ Create your R2 bucket(s) if you haven't already (replace `bucket_name` and `prev
 wrangler r2 bucket create bucket_name # required
 wrangler r2 bucket create preview_bucket_name # optional
 ```
+You can also do this from the [Cloudflare dashboard](https://dash.cloudflare.com/?to=/:account/r2/buckets/new).
 
 Edit `wrangler.toml` to have the correct `bucket_name` and optionally, `preview_bucket_name`  (you can set it to `bucket_name`) if you're going to run this locally.
+You can do this from a fork, if using the [GitHub Actions method](#method-2-github-actions).
 
 ### Deploying
 
+#### Method 1 (Local)
 ```sh
 wrangler publish # or `npm deploy`
 ```
+
+#### Method 2 (GitHub Actions)
+1. Fork this repository
+2. Create and set the R2 bucket names in `wrangler.toml`
+3. Set the secrets [`CF_API_TOKEN`](https://dash.cloudflare.com/profile/api-tokens) and `CF_ACCOUNT_ID` in settings
+4. Enable workflows in the Actions tab
+5. Profit
 
 ## Development
 
