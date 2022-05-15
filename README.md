@@ -1,6 +1,12 @@
 # Render
 
-Proxies readonly requests to R2 via Cloudflare Workers.
+Proxies readonly requests to [Cloudflare R2](https://developers.cloudflare.com/r2) via [Cloudflare Workers](https://workers.dev).
+
+## Features
+- Handles `HEAD`, `GET`, and `OPTIONS` requests
+- Forwards caching headers (`etag`, `cache-control`, `expires`, `last-modified`)
+- Forwards content headers (`content-type`, `content-encoding`, `content-language`, `content-disposition`)
+- Caches served files using the [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)
 
 ## Setup
 
