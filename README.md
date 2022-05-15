@@ -31,6 +31,9 @@ You can do this from a fork, if using the [GitHub Actions method](#method-2-gith
 
 ### Deploying
 
+Note: Due to how custom domains for workers work, you MUST use a route to take advantage of caching. Cloudflare may fix this soon.
+Also note that *.workers.dev domains do not cache responses. You MUST use a route to your own (sub)domain.
+
 #### Method 1 (Local)
 ```sh
 wrangler publish # or `npm deploy`
