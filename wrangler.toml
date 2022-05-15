@@ -2,6 +2,9 @@ name = "render"
 main = "src/index.ts"
 compatibility_date = "2022-05-15"
 
+[vars]
+CACHE_CONTROL = "max-age=86400"
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "kot"

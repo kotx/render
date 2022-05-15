@@ -1,5 +1,6 @@
 interface Env {
-  R2_BUCKET: R2Bucket
+  R2_BUCKET: R2Bucket,
+  CACHE_CONTROL: string
 }
 
 export default {
@@ -69,7 +70,7 @@ export default {
         status: (file?.size || 0) === 0 ? 204 : 200,
         headers: {
           "etag": file.httpEtag,
-          "cache-control": file.httpMetadata.cacheControl ?? "",
+          "cache-control": file.httpMetadata.cacheControl ?? (env.CACHE_CONTROL || ""),
           "expires": file.httpMetadata.cacheExpiry?.toUTCString() ?? "",
           "last-modified": file.uploaded.toUTCString(),
 
