@@ -30,5 +30,17 @@ Edit `wrangler.toml` to have the correct `bucket_name` and optionally, `preview_
 ### Deploying
 
 ```sh
-wrangler publish
+wrangler publish # or `npm deploy`
+```
+
+## Development
+
+Install deps:
+```sh
+npm install
+```
+
+To launch the development server:
+```sh
+npm dev
 ```
