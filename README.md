@@ -36,7 +36,7 @@ Also note that *.workers.dev domains do not cache responses. You MUST use a rout
 
 #### Method 1 (Local)
 ```sh
-wrangler publish # or `npm deploy`
+wrangler publish # or `npm run deploy`
 ```
 
 #### Method 2 (GitHub Actions)
@@ -55,5 +55,5 @@ npm install
 
 To launch the development server:
 ```sh
-npm dev
+npm run dev
 ```
