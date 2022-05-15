@@ -63,7 +63,7 @@ export default {
       const ifUnmodifiedSince = Date.parse(request.headers.get("if-unmodified-since") || "");
 
       if (ifMatch || ifUnmodifiedSince) {
-        file = await env.R2_BUCKET.get(path, { onlyIf: { etagMatches: ifMatch, uploadedBefore: new Date(ifUnmodifiedSince) }, range });
+        file = await env.R2_BUCKET.get(path, { onlyIf: { etagMatches: ifMatch, uploadedBefore: ifUnmodifiedSince && new Date(ifUnmodifiedSince) }, range });
 
         if (file && !hasBody(file)) {
           return new Response("Precondition Failed", { status: 412 });
