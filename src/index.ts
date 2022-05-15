@@ -46,7 +46,6 @@ export default {
               offset: firstRange.start,
               length: firstRange.end - firstRange.start + 1
             }
-            console.log(range);
           } else {
             return new Response("Range Not Satisfiable", { status: 416 });
           }
