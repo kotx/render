@@ -70,16 +70,13 @@ export default {
         }
       }
 
-      if (ifNoneMatch) {
-        file = await env.R2_BUCKET.get(path, { onlyIf: { etagDoesNotMatch: ifNoneMatch }, range });
-        if (file && !hasBody(file)) {
-          return new Response(null, { status: 304 });
+      if (ifNoneMatch || ifModifiedSince) {
+        // if-none-match overrides if-modified-since completely
+        if (ifNoneMatch) {
+          file = await env.R2_BUCKET.get(path, { onlyIf: { etagDoesNotMatch: ifNoneMatch }, range });
+        } else if (ifModifiedSince) {
+          file = await env.R2_BUCKET.get(path, { onlyIf: { uploadedAfter: new Date(ifModifiedSince) }, range });
         }
-      }
-
-      // if-none-match overrides if-modified-since completely
-      if (!ifNoneMatch && ifModifiedSince) {
-        file = await env.R2_BUCKET.get(path, { onlyIf: { uploadedAfter: new Date(ifModifiedSince) }, range });
         if (file && !hasBody(file)) {
           return new Response(null, { status: 304 });
         }
