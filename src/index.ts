@@ -20,13 +20,21 @@ export default {
     let response = await cache.match(request);
 
     if (!response || !response.ok) {
-      let file = await env.R2_BUCKET.get(url.pathname.substring(1));
+      const path = url.pathname.substring(1);
+
+      const file = request.method === "HEAD" ? await env.R2_BUCKET.head(path) : await env.R2_BUCKET.get(path);
       if (file === null) {
         return new Response("File Not Found", { status: 404 });
       }
 
-      response = new Response(file.body, {
-        status: file.size != 0 ? 200 : 204,
+      function hasBody(object: R2Object | R2ObjectBody): object is R2ObjectBody {
+        return (file?.size || 0) !== 0 && (<R2ObjectBody>object).body !== undefined;
+      }
+
+      const shouldSendBody = hasBody(file);
+
+      response = new Response(shouldSendBody ? file.body : null, {
+        status: shouldSendBody ? 200 : 204,
         headers: {
           "etag": file.httpEtag,
           "cache-control": file.httpMetadata.cacheControl ?? "",
