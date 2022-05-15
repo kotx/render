@@ -5,4 +5,4 @@ compatibility_date = "2022-05-15"
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "kot"
-preview_bucket_name = "kotx"
+preview_bucket_name = "kot"

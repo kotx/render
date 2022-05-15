@@ -19,7 +19,7 @@ wrangler r2 bucket create bucket_name # required
 wrangler r2 bucket create preview_bucket_name # optional
 ```
 
-Edit `wrangler.toml` to have the correct `bucket_name` and optionally, `preview_bucket_name` if you're going to run this locally.
+Edit `wrangler.toml` to have the correct `bucket_name` and optionally, `preview_bucket_name`  (you can set it to `bucket_name`) if you're going to run this locally.
 
 ### Deploying
 
