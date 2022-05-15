@@ -2,11 +2,13 @@ lockfileVersion: 5.3
 
 specifiers:
   '@cloudflare/workers-types': ^3.10.0
+  '@types/range-parser': ^1.2.4
   typescript: ^4.6.4
   wrangler: 2.0.5
 
 devDependencies:
   '@cloudflare/workers-types': 3.10.0
+  '@types/range-parser': 1.2.4
   typescript: 4.6.4
   wrangler: 2.0.5
 
@@ -180,6 +182,10 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    dev: true
+
+  /@types/range-parser/1.2.4:
+    resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==}
     dev: true
 
   /@types/stack-trace/0.0.29:
