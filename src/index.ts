@@ -30,8 +30,9 @@ export default {
       console.warn("Cache miss");
       const path = url.pathname.substring(1);
 
+      let file: R2Object | R2ObjectBody | null | undefined;
+
       // Range handling (Currently bugged in R2- ranges starting with 0 will error)
-      let file: R2Object | null | undefined;
       let range: R2Range | undefined;
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
