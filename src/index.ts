@@ -25,19 +25,20 @@ export default {
         return new Response("File Not Found", { status: 404 });
       }
 
-      response = new Response(file.body,
-        {
-          headers: {
-            "etag": file.httpEtag,
-            "cache-control": file.httpMetadata.cacheControl ?? "",
-            "expires": file.httpMetadata.cacheExpiry?.toUTCString() ?? "",
+      response = new Response(file.body, {
+        status: file.size != 0 ? 200 : 204,
+        headers: {
+          "etag": file.httpEtag,
+          "cache-control": file.httpMetadata.cacheControl ?? "",
+          "expires": file.httpMetadata.cacheExpiry?.toUTCString() ?? "",
+          "last-modified": file.uploaded.toUTCString(),
 
-            "content-encoding": file.httpMetadata?.contentEncoding ?? "",
-            "content-type": file.httpMetadata?.contentType ?? "",
-            "content-language": file.httpMetadata?.contentLanguage ?? "",
-            "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-          },
-        });
+          "content-encoding": file.httpMetadata?.contentEncoding ?? "",
+          "content-type": file.httpMetadata?.contentType ?? "application/octet-stream",
+          "content-language": file.httpMetadata?.contentLanguage ?? "",
+          "content-disposition": file.httpMetadata?.contentDisposition ?? "",
+        }
+      });
     }
 
     ctx.waitUntil(cache.put(request, response.clone()));
