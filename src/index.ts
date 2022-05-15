@@ -20,6 +20,7 @@ export default {
     let response = await cache.match(request);
 
     if (!response || !response.ok) {
+      console.warn("Cache miss");
       const path = url.pathname.substring(1);
 
       // Range handling (Currently bugged in R2, so disabled)
