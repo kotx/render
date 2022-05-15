@@ -13,5 +13,5 @@
   "dependencies": {
     "range-parser": "^1.2.1"
   },
-  "packageManager": "pnpm@6.11.0"
+  "packageManager": "pnpm@7.1.0"
 }
