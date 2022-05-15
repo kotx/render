@@ -59,8 +59,11 @@ export default {
       const ifMatch = getHeaderEtag(request.headers.get("if-match"));
       const ifNoneMatch = getHeaderEtag(request.headers.get("if-none-match"));
 
-      if (ifMatch) {
-        file = await env.R2_BUCKET.get(path, { onlyIf: { etagMatches: ifMatch }, range });
+      const ifModifiedSince = Date.parse(request.headers.get("if-modified-since") || "");
+      const ifUnmodifiedSince = Date.parse(request.headers.get("if-unmodified-since") || "");
+
+      if (ifMatch || ifUnmodifiedSince) {
+        file = await env.R2_BUCKET.get(path, { onlyIf: { etagMatches: ifMatch, uploadedBefore: new Date(ifUnmodifiedSince) }, range });
 
         if (file && !hasBody(file)) {
           return new Response("Precondition Failed", { status: 412 });
@@ -74,9 +77,17 @@ export default {
         }
       }
 
-      file ??= request.method === "HEAD"
+      // if-none-match overrides if-modified-since completely
+      if (!ifNoneMatch && ifModifiedSince) {
+        file = await env.R2_BUCKET.get(path, { onlyIf: { uploadedAfter: new Date(ifModifiedSince) }, range });
+        if (file && !hasBody(file)) {
+          return new Response(null, { status: 304 });
+        }
+      }
+
+      file = request.method === "HEAD"
         ? await env.R2_BUCKET.head(path)
-        : await env.R2_BUCKET.get(path, { range });
+        : ((file && hasBody(file)) ? file : await env.R2_BUCKET.get(path, { range }));
 
       if (file === null) {
         return new Response("File Not Found", { status: 404 });
