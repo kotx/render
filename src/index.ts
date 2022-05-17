@@ -32,7 +32,7 @@ export default {
 
       let file: R2Object | R2ObjectBody | null | undefined;
 
-      // Range handling (Currently bugged in R2- ranges starting with 0 will error)
+      // Range handling
       let range: R2Range | undefined;
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
@@ -44,7 +44,7 @@ export default {
             let firstRange = parsedRanges[0];
             range = {
               offset: firstRange.start,
-              length: firstRange.end - firstRange.start + 1
+              length: firstRange.end - firstRange.start
             }
           } else {
             return new Response("Range Not Satisfiable", { status: 416 });
