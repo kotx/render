@@ -25,6 +25,7 @@ export default {
 
     const cache = caches.default;
     let response = await cache.match(request);
+    let range: R2Range | undefined;
 
     if (!response || !response.ok) {
       console.warn("Cache miss");
@@ -33,13 +34,13 @@ export default {
       let file: R2Object | R2ObjectBody | null | undefined;
 
       // Range handling
-      let range: R2Range | undefined;
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
           file = await env.R2_BUCKET.head(path);
           if (file === null) return new Response("File Not Found", { status: 404 });
-          const parsedRanges = parseRange(file?.size || 0, rangeHeader);
+          const parsedRanges = parseRange(file.size, rangeHeader);
+          // R2 only supports 1 range at the moment, reject if there is more than one
           if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1) {
             let firstRange = parsedRanges[0];
             range = {
@@ -98,6 +99,8 @@ export default {
       response = new Response(hasBody(file) ? file.body : null, {
         status: (file?.size || 0) === 0 ? 204 : (range ? 206 : 200),
         headers: {
+          "accept-ranges": "bytes",
+
           "etag": file.httpEtag,
           "cache-control": file.httpMetadata.cacheControl ?? (env.CACHE_CONTROL || ""),
           "expires": file.httpMetadata.cacheExpiry?.toUTCString() ?? "",
@@ -107,11 +110,12 @@ export default {
           "content-type": file.httpMetadata?.contentType ?? "application/octet-stream",
           "content-language": file.httpMetadata?.contentLanguage ?? "",
           "content-disposition": file.httpMetadata?.contentDisposition ?? "",
+          "content-range": range ? `bytes ${range.offset}-${range.offset + range.length - 1}/${file.size}` : "",
         }
       });
     }
 
-    if (request.method === "GET")
+    if (request.method === "GET" && !range)
       ctx.waitUntil(cache.put(request, response.clone()));
 
     return response;
