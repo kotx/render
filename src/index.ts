@@ -41,7 +41,7 @@ export default {
           if (file === null) return new Response("File Not Found", { status: 404 });
           const parsedRanges = parseRange(file.size, rangeHeader);
           // R2 only supports 1 range at the moment, reject if there is more than one
-          if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1) {
+          if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1 && parsedRanges.type === "bytes") {
             let firstRange = parsedRanges[0];
             range = {
               offset: firstRange.start,
