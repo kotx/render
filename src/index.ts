@@ -63,6 +63,16 @@ export default {
       const ifModifiedSince = Date.parse(request.headers.get("if-modified-since") || "");
       const ifUnmodifiedSince = Date.parse(request.headers.get("if-unmodified-since") || "");
 
+      const ifRange = request.headers.get("if-range");
+      if (range && ifRange && file) {
+        const maybeDate = Date.parse(ifRange);
+
+        if (isNaN(maybeDate) || new Date(maybeDate) > file.uploaded) {
+          // httpEtag already has quotes, no need to use getHeaderEtag
+          if (ifRange !== file.httpEtag) range = undefined;
+        }
+      }
+
       if (ifMatch || ifUnmodifiedSince) {
         file = await env.R2_BUCKET.get(path, {
           onlyIf: {

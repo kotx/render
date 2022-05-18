@@ -2,12 +2,14 @@
 
 Proxies readonly requests to [Cloudflare R2](https://developers.cloudflare.com/r2) via [Cloudflare Workers](https://workers.dev).
 
+Note: This worker might not conform to standards very well, but it should work in most cases... if you see a bug or something missing, please please please open an issue!
+
 ## Features
 - Handles `HEAD`, `GET`, and `OPTIONS` requests
 - Forwards caching headers (`etag`, `cache-control`, `expires`, `last-modified`)
 - Forwards content headers (`content-type`, `content-encoding`, `content-language`, `content-disposition`)
 - Caches served files using the [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)
-- Ranged requests
+- Ranged requests (`range`, `if-range`, returns `content-range`)
 - Handles precondition headers (`if-modified-since`, `if-unmodified-since`, `if-match`, `if-none-match`)
 
 ## Setup
