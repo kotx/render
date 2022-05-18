@@ -29,7 +29,7 @@ export default {
 
     if (!response || !response.ok) {
       console.warn("Cache miss");
-      const path = url.pathname.substring(1);
+      const path = decodeURIComponent(url.pathname.substring(1));
 
       let file: R2Object | R2ObjectBody | null | undefined;
 
