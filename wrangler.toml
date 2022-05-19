@@ -1,9 +1,9 @@
 name = "render"
 main = "src/index.ts"
 compatibility_date = "2022-05-15"
-# IMPORTANT: Set this to true if you want to use the default *.workers.dev route.
+# Set this to false if you don't want to use the default *.workers.dev route.
 # Note that *.workers.dev routes don't support native worker-level caching: https://developers.cloudflare.com/workers/runtime-apis/cache/
-workers_dev = false
+workers_dev = true
 
 [vars]
 # The `cache-control` header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control. Optional, the `cache-control` header is omitted if unset.
