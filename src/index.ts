@@ -37,8 +37,9 @@ export default {
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          // R2 allows the range length to be greater than the file size, this saves us a head request
-          const parsedRanges = parseRange(Number.MAX_SAFE_INTEGER, rangeHeader);
+          file = await env.R2_BUCKET.head(path);
+          if (file === null) return new Response("File Not Found", { status: 404 });
+          const parsedRanges = parseRange(file.size, rangeHeader);
           // R2 only supports 1 range at the moment, reject if there is more than one
           if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1 && parsedRanges.type === "bytes") {
             let firstRange = parsedRanges[0];
@@ -63,15 +64,12 @@ export default {
       const ifUnmodifiedSince = Date.parse(request.headers.get("if-unmodified-since") || "");
 
       const ifRange = request.headers.get("if-range");
-      if (range && ifRange) {
-        if (!file) file = await env.R2_BUCKET.head(path);
-        if (!file) return new Response("Not Found", { status: 404 });
-
+      if (range && ifRange && file) {
         const maybeDate = Date.parse(ifRange);
 
-        if (isNaN(maybeDate) || new Date(maybeDate) > file!.uploaded) {
+        if (isNaN(maybeDate) || new Date(maybeDate) > file.uploaded) {
           // httpEtag already has quotes, no need to use getHeaderEtag
-          if (ifRange.startsWith("W/") || ifRange !== file!.httpEtag) range = undefined;
+          if (ifRange.startsWith("W/") || ifRange !== file.httpEtag) range = undefined;
         }
       }
 
@@ -122,7 +120,7 @@ export default {
           "content-type": file.httpMetadata?.contentType ?? "application/octet-stream",
           "content-language": file.httpMetadata?.contentLanguage ?? "",
           "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-          "content-range": range ? `bytes ${range.offset}-${Math.min(range.offset + range.length - 1, file.size)}/${file.size}` : "",
+          "content-range": range ? `bytes ${range.offset}-${range.offset + range.length - 1}/${file.size}` : "",
         }
       });
     }
