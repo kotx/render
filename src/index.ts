@@ -37,9 +37,7 @@ export default {
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          file = await env.R2_BUCKET.head(path);
-          if (file === null) return new Response("File Not Found", { status: 404 });
-          const parsedRanges = parseRange(file.size, rangeHeader);
+          const parsedRanges = parseRange(Number.MAX_SAFE_INTEGER, rangeHeader);
           // R2 only supports 1 range at the moment, reject if there is more than one
           if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1 && parsedRanges.type === "bytes") {
             let firstRange = parsedRanges[0];
@@ -120,7 +118,7 @@ export default {
           "content-type": file.httpMetadata?.contentType ?? "application/octet-stream",
           "content-language": file.httpMetadata?.contentLanguage ?? "",
           "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-          "content-range": range ? `bytes ${range.offset}-${range.offset + range.length - 1}/${file.size}` : "",
+          "content-range": range ? `bytes ${range.offset}-${Math.min(range.offset + range.length, file.size) - 1}/${file.size}` : "",
         }
       });
     }
