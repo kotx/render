@@ -71,7 +71,7 @@ export default {
 
         if (isNaN(maybeDate) || new Date(maybeDate) > file!.uploaded) {
           // httpEtag already has quotes, no need to use getHeaderEtag
-          if (ifRange !== file!.httpEtag) range = undefined;
+          if (ifRange.startsWith("W/") || ifRange !== file!.httpEtag) range = undefined;
         }
       }
 
