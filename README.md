@@ -47,10 +47,10 @@ wrangler publish # or `npm run deploy`
 
 #### Method 2 (GitHub Actions)
 1. Fork this repository
-2. Create and set the R2 bucket names in `wrangler.toml`
-3. Set the secrets [`CF_API_TOKEN`](https://dash.cloudflare.com/profile/api-tokens) and `CF_ACCOUNT_ID` in settings
-4. Enable workflows in the Actions tab
-5. Profit
+2. Set the secrets [`CF_API_TOKEN`](https://dash.cloudflare.com/profile/api-tokens) and `CF_ACCOUNT_ID` in the repo settings
+3. Enable workflows in the Actions tab
+4. Create and set the R2 bucket names in `wrangler.toml` (this will trigger the workflow)
+5. (Optionally) set the worker route in the Cloudflare dashboard to use the Cache API
 
 ## Development
 
