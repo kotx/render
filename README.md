@@ -52,18 +52,6 @@ wrangler publish # or `npm run deploy`
 4. Update `wrangler.toml` as needed (this will trigger the workflow)
 5. (Optionally) set the worker route in the Cloudflare dashboard to use the Cache API
 
-## Development
-
-Install deps:
-```sh
-npm install
-```
-
-To launch the development server:
-```sh
-npm run dev
-```
-
 ## Using as a package
 
 You may use this worker's functionality as a package by installing and importing [`@kotx/render`](https://www.npmjs.com/package/@kotx/render):
@@ -74,4 +62,16 @@ Usage:
 ```js
 import render from "@kotx/render";
 render.fetch(req, env, ctx);
+```
+
+## Development
+
+Install deps:
+```sh
+npm install
+```
+
+To launch the development server:
+```sh
+npm run dev
 ```
