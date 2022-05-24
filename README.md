@@ -63,3 +63,15 @@ To launch the development server:
 ```sh
 npm run dev
 ```
+
+## Using as a package
+
+You may use this worker's functionality as a package by installing and importing [`@kotx/render`](https://www.npmjs.com/package/@kotx/render):
+```sh
+npm install @kotx/render
+```
+Usage:
+```js
+import render from "@kotx/render";
+render.fetch(req, env, ctx);
+```
