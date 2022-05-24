@@ -56,11 +56,11 @@ wrangler publish # or `npm run deploy`
 
 You may use this worker's functionality as a package by installing and importing [`@kotx/render`](https://www.npmjs.com/package/@kotx/render):
 ```sh
-npm install @kotx/render
+npm install render2
 ```
 Usage:
 ```js
-import render from "@kotx/render";
+import render from "render2";
 render.fetch(req, env, ctx);
 ```
 
