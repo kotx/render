@@ -16,7 +16,7 @@ function hasSuffix(range: ParsedRange): range is { suffix: number } {
 }
 
 function getRangeHeader(range: ParsedRange, fileSize: number): string {
-  return `bytes=${hasSuffix(range) ? (fileSize - range.suffix) : range.offset}-${hasSuffix(range) ? fileSize - 1 :
+  return `bytes ${hasSuffix(range) ? (fileSize - range.suffix) : range.offset}-${hasSuffix(range) ? fileSize - 1 :
     (range.offset + range.length - 1)}/${fileSize}`;
 }
 
