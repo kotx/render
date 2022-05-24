@@ -1,8 +1,12 @@
 {
-  "private": true,
+  "name": "@kotx/render",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler publish"
+    "deploy": "wrangler publish",
+    "prepublishOnly": "tsc"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.11.0",
