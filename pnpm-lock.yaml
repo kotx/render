@@ -1,25 +1,25 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@cloudflare/workers-types': ^3.10.0
+  '@cloudflare/workers-types': ^3.11.0
   '@types/range-parser': ^1.2.4
   range-parser: ^1.2.1
   typescript: ^4.6.4
-  wrangler: 2.0.5
+  wrangler: 2.0.6
 
 dependencies:
   range-parser: 1.2.1
 
 devDependencies:
-  '@cloudflare/workers-types': 3.10.0
+  '@cloudflare/workers-types': 3.11.0
   '@types/range-parser': 1.2.4
   typescript: 4.6.4
-  wrangler: 2.0.5
+  wrangler: 2.0.6
 
 packages:
 
-  /@cloudflare/workers-types/3.10.0:
-    resolution: {integrity: sha512-gn+H5Ps9yV1VYz8FJ08bMfXLW8ubNblRF9Z+m+0ctNMyl3CdoZmUfH1pMTxYE8SMUJbLxuNvpdlZhwLDoGFXaw==}
+  /@cloudflare/workers-types/3.11.0:
+    resolution: {integrity: sha512-XmKgZZHrCdPsoVQkdd365R7GvwTwDVJsMyEG3Dq/Tgxz6vgrps2c8PXBqEutguwvl0zDAF0AL0e2Z8WG9Dffjw==}
     dev: true
 
   /@esbuild-plugins/node-globals-polyfill/0.1.1_esbuild@0.14.34:
@@ -618,8 +618,8 @@ packages:
     engines: {node: '>=12.18'}
     dev: true
 
-  /wrangler/2.0.5:
-    resolution: {integrity: sha512-0BVKQDGm9whPrzLPACGJ9CGdk/taKYYIEvnjLSVOBOxa8her6R9VcmGP6U0wXQnvMasQqlmj+NnjNWgfRw8nIQ==}
+  /wrangler/2.0.6:
+    resolution: {integrity: sha512-LO3iTWZCPY5cWg5Ocx0j3awchBAfJtHTa21MFv0/m/AJC5FdATvH/agZ100dkOaF3/qmQVFsMI3EDx9/PiRjmg==}
     engines: {node: '>=16.7.0'}
     hasBin: true
     dependencies:

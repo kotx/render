@@ -5,8 +5,19 @@ interface Env {
   CACHE_CONTROL: string
 }
 
+type ParsedRange = { offset: number, length: number } | { suffix: number };
+
 function hasBody(object: R2Object | R2ObjectBody): object is R2ObjectBody {
   return (<R2ObjectBody>object).body !== undefined;
+}
+
+function hasSuffix(range: ParsedRange): range is { suffix: number } {
+  return (<{ suffix: number }>range).suffix !== undefined;
+}
+
+function getRangeHeader(range: ParsedRange, fileSize: number): string {
+  return `bytes=${hasSuffix(range) ? (fileSize - range.suffix) : range.offset}-${hasSuffix(range) ? fileSize - 1 :
+    (range.offset + range.length - 1)}/${fileSize}`;
 }
 
 export default {
@@ -25,7 +36,9 @@ export default {
 
     const cache = caches.default;
     let response = await cache.match(request);
-    let range: R2Range | undefined;
+
+    // Since we produce this result from the request, we don't need to strictly use an R2Range
+    let range: ParsedRange | undefined;
 
     if (!response || !response.ok) {
       console.warn("Cache miss");
@@ -43,7 +56,7 @@ export default {
           // R2 only supports 1 range at the moment, reject if there is more than one
           if (parsedRanges !== -1 && parsedRanges !== -2 && parsedRanges.length === 1 && parsedRanges.type === "bytes") {
             let firstRange = parsedRanges[0];
-            range = {
+            range = file.size === (firstRange.end + 1) ? { suffix: file.size - firstRange.start } : {
               offset: firstRange.start,
               length: firstRange.end - firstRange.start + 1
             }
@@ -120,7 +133,7 @@ export default {
           "content-type": file.httpMetadata?.contentType ?? "application/octet-stream",
           "content-language": file.httpMetadata?.contentLanguage ?? "",
           "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-          "content-range": range ? `bytes ${range.offset}-${range.offset + range.length - 1}/${file.size}` : "",
+          "content-range": range ? getRangeHeader(range, file.size) : "",
         }
       });
     }
