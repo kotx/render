@@ -1,9 +1,13 @@
 {
   "name": "@kotx/render",
   "version": "0.1.0",
+  "author": "kotx",
   "description": "A Cloudflare worker for proxying readonly requests to Cloudflare R2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler publish",
