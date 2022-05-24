@@ -54,7 +54,7 @@ wrangler publish # or `npm run deploy`
 
 ## Using as a package
 
-You may use this worker's functionality as a package by installing and importing [`@kotx/render`](https://www.npmjs.com/package/@kotx/render):
+You may use this worker's functionality as a package by installing and importing [`render2`](https://www.npmjs.com/package/render2):
 ```sh
 npm install render2
 ```
