@@ -2,7 +2,7 @@ import parseRange from "range-parser";
 
 interface Env {
   R2_BUCKET: R2Bucket,
-  CACHE_CONTROL: string
+  CACHE_CONTROL?: string
 }
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
