@@ -136,10 +136,10 @@ export default {
           "content-range": range ? getRangeHeader(range, file.size) : "",
         }
       });
-    }
 
-    if (request.method === "GET" && !range)
-      ctx.waitUntil(cache.put(request, response.clone()));
+      if (request.method === "GET" && !range)
+        ctx.waitUntil(cache.put(request, response.clone()));
+    }
 
     return response;
   },
