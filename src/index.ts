@@ -2,7 +2,8 @@ import parseRange from "range-parser";
 
 interface Env {
   R2_BUCKET: R2Bucket,
-  CACHE_CONTROL?: string
+  CACHE_CONTROL?: string,
+  PATH_PREFIX?: string
 }
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
@@ -42,7 +43,7 @@ export default {
 
     if (!response || !response.ok) {
       console.warn("Cache miss");
-      const path = decodeURIComponent(url.pathname.substring(1));
+      const path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
 
       let file: R2Object | R2ObjectBody | null | undefined;
 
