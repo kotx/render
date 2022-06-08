@@ -120,7 +120,7 @@ export default {
         return new Response("File Not Found", { status: 404 });
       }
 
-      response = new Response(hasBody(file) ? file.body : null, {
+      response = new Response((hasBody(file) && file.size !== 0) ? file.body : null, {
         status: (file?.size || 0) === 0 ? 204 : (range ? 206 : 200),
         headers: {
           "accept-ranges": "bytes",
