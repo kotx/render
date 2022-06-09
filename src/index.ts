@@ -121,7 +121,7 @@ export default {
       }
 
       response = new Response((hasBody(file) && file.size !== 0) ? file.body : null, {
-        status: (file?.size || 0) === 0 ? 204 : (range ? 206 : 200),
+        status: range ? 206 : 200,
         headers: {
           "accept-ranges": "bytes",
 
