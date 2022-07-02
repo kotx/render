@@ -6,7 +6,9 @@ compatibility_date = "2022-05-15"
 workers_dev = true
 
 [vars]
-# The `cache-control` header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control. Optional, the `cache-control` header is omitted if unset.
+# The `cache-control` header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control.
+# Optional, the `cache-control` header is omitted if unset, which would NOT disable caching: https://developers.cloudflare.com/workers/runtime-apis/cache/#headers
+# For example, you can disable all cache by setting this to `no-store`.
 CACHE_CONTROL = "max-age=86400"
 # The string to prepend to each file path. Optional, nothing is prepended to the path if unset.
 PATH_PREFIX = ""
