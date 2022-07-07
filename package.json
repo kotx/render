@@ -1,6 +1,6 @@
 {
   "name": "render2",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "kotx",
   "description": "A Cloudflare worker for proxying readonly requests to Cloudflare R2",
   "main": "dist/index.js",

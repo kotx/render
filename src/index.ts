@@ -8,6 +8,10 @@ interface Env {
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
 
+function rangeHasLength(object: ParsedRange): object is { offset: number, length: number } {
+  return (<{offset: number, length: number}>object).length !== undefined;
+}
+
 function hasBody(object: R2Object | R2ObjectBody): object is R2ObjectBody {
   return (<R2ObjectBody>object).body !== undefined;
 }
@@ -135,6 +139,7 @@ export default {
           "content-language": file.httpMetadata?.contentLanguage ?? "",
           "content-disposition": file.httpMetadata?.contentDisposition ?? "",
           "content-range": range ? getRangeHeader(range, file.size) : "",
+          "content-length": (range ? (rangeHasLength(range) ? range.length : range.suffix) : file.size).toString()
         }
       });
 
