@@ -2,6 +2,7 @@ import parseRange from "range-parser";
 
 interface Env {
   R2_BUCKET: R2Bucket,
+  ALLOWED_ORIGINS?: string,
   CACHE_CONTROL?: string,
   PATH_PREFIX?: string
 }
@@ -128,6 +129,7 @@ export default {
         status: range ? 206 : 200,
         headers: {
           "accept-ranges": "bytes",
+          "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
 
           "etag": file.httpEtag,
           "cache-control": file.httpMetadata.cacheControl ?? (env.CACHE_CONTROL || ""),
