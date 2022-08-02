@@ -18,6 +18,10 @@ CACHE_CONTROL = "max-age=86400"
 # The string to prepend to each file path. Optional, nothing is prepended to the path if unset.
 PATH_PREFIX = ""
 
+# Index file to search for on directory requests, set to "" to disable indexes
+#INDEX_FILE = ""
+INDEX_FILE = "index.html"
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "kot"         # Set this to your R2 bucket name. Required
