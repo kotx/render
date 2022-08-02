@@ -36,7 +36,7 @@ export default {
     }
 
     const url = new URL(request.url);
-    if (url.pathname === "/") {
+    if (env.INDEX_FILE === "" && url.pathname === "/") {
       return new Response("OK");
     }
 
@@ -48,7 +48,12 @@ export default {
 
     if (!response || !response.ok) {
       console.warn("Cache miss");
-      const path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
+      var path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
+
+      // Look for index file if asked for a directory
+      if (env.INDEX_FILE !== "" && (path.endsWith("/") || path === "")) {
+        path += env.INDEX_FILE;
+      }
 
       let file: R2Object | R2ObjectBody | null | undefined;
 
