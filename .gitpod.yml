@@ -1,0 +1,9 @@
+tasks:
+  - init: pnpm install
+    command: pnpm run dev
+ports:
+  - port: 8976
+    name: Wrangler Authorization
+    onOpen: ignore
+  - port: 8787
+    name: Wrangler Dev
