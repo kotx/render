@@ -11,7 +11,7 @@ interface Env {
 type ParsedRange = { offset: number, length: number } | { suffix: number };
 
 function rangeHasLength(object: ParsedRange): object is { offset: number, length: number } {
-  return (<{offset: number, length: number}>object).length !== undefined;
+  return (<{ offset: number, length: number }>object).length !== undefined;
 }
 
 function hasBody(object: R2Object | R2ObjectBody): object is R2ObjectBody {
@@ -49,7 +49,7 @@ export default {
 
     if (!response || !response.ok) {
       console.warn("Cache miss");
-      var path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
+      let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
 
       // Look for index file if asked for a directory
       if (env.INDEX_FILE && (path.endsWith("/") || path === "")) {
