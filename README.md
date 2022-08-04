@@ -11,6 +11,7 @@ Note: This worker might not conform to standards very well, but it should work i
 - Caches served files using the [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)
 - Ranged requests (`range`, `if-range`, returns `content-range`)
 - Handles precondition headers (`if-modified-since`, `if-unmodified-since`, `if-match`, `if-none-match`)
+- Can serve an appended path if the requested url ends with / - Defaults to `index.html` in 0.5.0
 
 ## Setup
 
