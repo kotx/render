@@ -41,8 +41,13 @@ export default {
       return new Response("OK");
     }
 
+    let response: Response | undefined;
+
+    const isCachingEnabled = env.CACHE_CONTROL !== "no-store"
     const cache = caches.default;
-    let response = await cache.match(request);
+    if (isCachingEnabled) {
+      response = await cache.match(request);
+    }
 
     // Since we produce this result from the request, we don't need to strictly use an R2Range
     let range: ParsedRange | undefined;
@@ -138,8 +143,8 @@ export default {
           "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
 
           "etag": file.httpEtag,
-          "cache-control": file.httpMetadata.cacheControl ?? (env.CACHE_CONTROL || ""),
-          "expires": file.httpMetadata.cacheExpiry?.toUTCString() ?? "",
+          "cache-control": file.httpMetadata?.cacheControl ?? (env.CACHE_CONTROL || ""),
+          "expires": file.httpMetadata?.cacheExpiry?.toUTCString() ?? "",
           "last-modified": file.uploaded.toUTCString(),
 
           "content-encoding": file.httpMetadata?.contentEncoding ?? "",
@@ -151,7 +156,7 @@ export default {
         }
       });
 
-      if (request.method === "GET" && !range)
+      if (request.method === "GET" && !range && isCachingEnabled)
         ctx.waitUntil(cache.put(request, response.clone()));
     }
 
