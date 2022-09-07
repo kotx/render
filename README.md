@@ -34,7 +34,7 @@ You can also do this from the [Cloudflare dashboard](https://dash.cloudflare.com
 Edit `wrangler.toml` to have the correct `bucket_name` and optionally, `preview_bucket_name`  (you can set it to `bucket_name`) if you're going to run this locally.
 You can do this from a fork, if using the [GitHub Actions method](#method-2-github-actions).
 
-You may edit `CACHE_CONTROL` to the default [`cache-control` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) or remove it entirely to fall back to nothing.
+You may edit `CACHE_CONTROL` to the default [`cache-control` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) or remove it entirely to fall back to nothing. If you set `CACHE_CONTROL` to `"no-store"` then Cloudflare caching will not be used.
 
 ### Deploying
 
