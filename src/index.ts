@@ -52,7 +52,7 @@ export default {
     // Since we produce this result from the request, we don't need to strictly use an R2Range
     let range: ParsedRange | undefined;
 
-    if (!response || !response.ok) {
+    if (!response || !(response.ok || response.status == 304)) {
       console.warn("Cache miss");
       let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
 
