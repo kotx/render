@@ -22,6 +22,13 @@ PATH_PREFIX = ""
 #INDEX_FILE = ""
 INDEX_FILE = "index.html"
 
+# 404 file to use for the bucket when a file is not found.
+# Incurs an additional read operation for 404 requests.
+# Set to "" to disable 404 behaviour.
+# Relative to the root of the bucket.
+NOTFOUND_FILE = ""
+#NOT_FOUND_FILE = "404.html"
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "kot"         # Set this to your R2 bucket name. Required

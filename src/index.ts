@@ -6,6 +6,7 @@ interface Env {
   CACHE_CONTROL?: string,
   PATH_PREFIX?: string
   INDEX_FILE?: string
+  NOTFOUND_FILE?: string
 }
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
@@ -132,31 +133,46 @@ export default {
         ? await env.R2_BUCKET.head(path)
         : ((file && hasBody(file)) ? file : await env.R2_BUCKET.get(path, { range }));
 
+      let notFound: boolean = false;
+
       if (file === null) {
-        return new Response("File Not Found", { status: 404 });
+        if (env.NOTFOUND_FILE && env.NOTFOUND_FILE != "") {
+          notFound = true;
+          path = env.NOTFOUND_FILE;
+          file = request.method === "HEAD"
+            ? await env.R2_BUCKET.head(path)
+            : await env.R2_BUCKET.get(path);
+        }
+
+        // if its still null, either 404 is disabled or that file wasn't found either
+        // this isn't an else because then there would have to be two of theem
+        if (file == null) {
+          return new Response("File Not Found", { status: 404 });
+        }
       }
 
       response = new Response((hasBody(file) && file.size !== 0) ? file.body : null, {
-        status: range ? 206 : 200,
+        status: notFound ? 404 : (range ? 206 : 200),
         headers: {
           "accept-ranges": "bytes",
           "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
 
-          "etag": file.httpEtag,
-          "cache-control": file.httpMetadata?.cacheControl ?? (env.CACHE_CONTROL || ""),
+          "etag": notFound ? "" : file.httpEtag,
+          // if the 404 file has a custom cache control, we respect it
+          "cache-control": file.httpMetadata?.cacheControl ?? (notFound ? "" : env.CACHE_CONTROL || ""),
           "expires": file.httpMetadata?.cacheExpiry?.toUTCString() ?? "",
-          "last-modified": file.uploaded.toUTCString(),
+          "last-modified": notFound ? "" : file.uploaded.toUTCString(),
 
           "content-encoding": file.httpMetadata?.contentEncoding ?? "",
           "content-type": file.httpMetadata?.contentType ?? "application/octet-stream",
           "content-language": file.httpMetadata?.contentLanguage ?? "",
           "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-          "content-range": range ? getRangeHeader(range, file.size) : "",
-          "content-length": (range ? (rangeHasLength(range) ? range.length : range.suffix) : file.size).toString()
+          "content-range": (range && !notFound ? getRangeHeader(range, file.size) : ""),
+          "content-length": (range && !notFound ? (rangeHasLength(range) ? range.length : range.suffix) : file.size).toString()
         }
       });
 
-      if (request.method === "GET" && !range && isCachingEnabled)
+      if (request.method === "GET" && !range && isCachingEnabled && !notFound)
         ctx.waitUntil(cache.put(request, response.clone()));
     }
 
