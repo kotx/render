@@ -2,7 +2,7 @@
 
 Proxies readonly requests to [Cloudflare R2](https://developers.cloudflare.com/r2) via [Cloudflare Workers](https://workers.dev).
 
-Note: This worker might not conform to standards very well, but it should work in most cases... if you see a bug or something missing, please please please open an issue!
+If you see a bug or something missing, please open an issue or pull request!
 
 ## Features
 - Handles `HEAD`, `GET`, and `OPTIONS` requests
@@ -12,6 +12,7 @@ Note: This worker might not conform to standards very well, but it should work i
 - Ranged requests (`range`, `if-range`, returns `content-range`)
 - Handles precondition headers (`if-modified-since`, `if-unmodified-since`, `if-match`, `if-none-match`)
 - Can serve an appended path if the requested url ends with / - Defaults to `index.html` in 0.5.0
+- Can serve custom 404 responses if a file is not found
 
 ## Setup
 
