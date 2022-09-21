@@ -19,12 +19,13 @@ CACHE_CONTROL = "max-age=86400"
 PATH_PREFIX = ""
 
 # Index file to search for on directory requests, set to "" to disable indexes
+# Relative to the directory of the request.
 #INDEX_FILE = ""
 INDEX_FILE = "index.html"
 
-# 404 file to use for the bucket when a file is not found.
+# File to fall back to when the requested path is not found in the bucket.
 # Incurs an additional read operation for 404 requests.
-# Set to "" to disable 404 behaviour.
+# Set to "" to disable custom 404 fallbacks.
 # Relative to the root of the bucket.
 NOTFOUND_FILE = ""
 #NOT_FOUND_FILE = "404.html"
