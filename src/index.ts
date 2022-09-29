@@ -7,6 +7,8 @@ interface Env {
   PATH_PREFIX?: string
   INDEX_FILE?: string
   NOTFOUND_FILE?: string
+  DIRECTORY_LISTING?: boolean
+  HIDE_HIDDEN_FILES?: boolean
 }
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
@@ -28,6 +30,102 @@ function getRangeHeader(range: ParsedRange, fileSize: number): string {
     (range.offset + range.length - 1)}/${fileSize}`;
 }
 
+// some ideas for this were taken from / inspired by 
+// https://github.com/cloudflare/workerd/blob/main/samples/static-files-from-disk/static.js
+async function makeListingResponse(path: string, env: Env, request: Request): Promise<Response | null> {
+  if (path === "/")
+    path = ""
+  else if (path !== "" && !path.endsWith("/")) {
+    path += "/";
+  }
+  let listing = await env.R2_BUCKET.list({ prefix: path, delimiter: '/' })
+
+  if (listing.delimitedPrefixes.length === 0 && listing.objects.length === 0) {
+    return null;
+  }
+
+  let html: string = "";
+  let lastModified: Date | null = null;
+
+  if (request.method === "GET") {
+    let htmlList = [];
+
+    if (path !== "") {
+      htmlList.push(
+        `      <tr>` +
+        `<td><a href="../">../</a></td>` +
+        `<td>-</td><td>-</td></tr>`);
+    }
+
+    for (let dir of listing.delimitedPrefixes) {
+      if (dir.endsWith("/")) dir = dir.substring(0, dir.length - 1)
+      let name = dir.substring(path.length, dir.length)
+      if (name.startsWith(".") && env.HIDE_HIDDEN_FILES) continue;
+      htmlList.push(
+        `      <tr>` +
+        `<td><a href="${encodeURIComponent(name)}/">${name}/</a></td>` +
+        `<td>-</td><td>-</td></tr>`);
+    }
+    for (let file of listing.objects) {
+      let name = file.key.substring(path.length, file.key.length)
+      if (name.startsWith(".") && env.HIDE_HIDDEN_FILES) continue;
+      htmlList.push(
+        `      <tr>` +
+        `<td><a href="${encodeURIComponent(name)}">${name}</a></td>` +
+        `<td>${file.uploaded.toUTCString()}</td><td>${file.size}</td></tr>`);
+
+      if (lastModified == null || file.uploaded > lastModified) {
+        lastModified = file.uploaded;
+      }
+
+    }
+
+    if (path === "") path = "/";
+
+    html = `<!DOCTYPE html>
+<html>
+  <head>
+    <title>Index of ${path}</title>
+    <style type="text/css">
+      td { padding-right: 16px; text-align: right; font-family: monospace }
+      td:nth-of-type(1) { text-align: left; }
+      th { text-align: left; }
+      @media (prefers-color-scheme: dark) {
+        body {
+          color: white;
+          background-color: #1c1b22;
+        }
+        a {
+          color: #3391ff;
+        }
+        a:visited {
+          color: #C63B65;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Index of ${path}</h1>
+    <table>
+      <tr><th>Filename</th><th>Modified</th><th>Size</th></tr>
+${htmlList.join("\n")}
+    </table>
+  </body>
+</html>
+  `
+  };
+
+  return new Response(html === "" ? null : html, {
+    status: 200,
+    headers: {
+      "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
+      "last-modified": lastModified === null ? "" : lastModified.toUTCString(),
+      "content-type": "text/html",
+      "cache-control": "no-store"
+    }
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const allowedMethods = ["GET", "HEAD", "OPTIONS"];
@@ -37,11 +135,9 @@ export default {
       return new Response(null, { headers: { "allow": allowedMethods.join(", ") } })
     }
 
-    const url = new URL(request.url);
-    if (!env.INDEX_FILE && url.pathname === "/") {
-      return new Response("OK");
-    }
+    let triedIndex = false;
 
+    const url = new URL(request.url);
     let response: Response | undefined;
 
     const isCachingEnabled = env.CACHE_CONTROL !== "no-store"
@@ -55,11 +151,24 @@ export default {
 
     if (!response || !(response.ok || response.status == 304)) {
       console.warn("Cache miss");
-      let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname.substring(1));
+      let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname);
 
-      // Look for index file if asked for a directory
-      if (env.INDEX_FILE && (path.endsWith("/") || path === "")) {
-        path += env.INDEX_FILE;
+      // directory logic
+      if (path.endsWith("/")) {
+        // if theres an index file, try that. 404 logic down below has dir fallback.
+        if (env.INDEX_FILE && env.INDEX_FILE !== "") {
+          path += env.INDEX_FILE;
+          triedIndex = true;
+        } else if (env.DIRECTORY_LISTING) {
+          // return the dir listing
+          let listResponse = await makeListingResponse(path, env, request);
+
+          if (listResponse !== null) return listResponse;
+        }
+      }
+
+      if (path !== "/") {
+        path = path.substring(1);
       }
 
       let file: R2Object | R2ObjectBody | null | undefined;
@@ -77,7 +186,7 @@ export default {
             range = file.size === (firstRange.end + 1) ? { suffix: file.size - firstRange.start } : {
               offset: firstRange.start,
               length: firstRange.end - firstRange.start + 1
-            }
+            };
           } else {
             return new Response("Range Not Satisfiable", { status: 416 });
           }
@@ -136,6 +245,18 @@ export default {
       let notFound: boolean = false;
 
       if (file === null) {
+        if (env.INDEX_FILE && triedIndex) {
+          // remove the index file since it doesnt exist
+          path = path.substring(0, path.length - env.INDEX_FILE.length)
+        }
+
+        if (env.DIRECTORY_LISTING && (path.endsWith("/") || path === "")) {
+          // return the dir listing
+          let listResponse = await makeListingResponse(path, env, request);
+
+          if (listResponse !== null) return listResponse;
+        }
+
         if (env.NOTFOUND_FILE && env.NOTFOUND_FILE != "") {
           notFound = true;
           path = env.NOTFOUND_FILE;

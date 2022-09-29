@@ -30,6 +30,13 @@ INDEX_FILE = "index.html"
 NOTFOUND_FILE = ""
 #NOT_FOUND_FILE = "404.html"
 
+# Enable to show a directory listing fallback on paths ending in /
+# If INDEX_FILE is also provided, it will be used instead if the file exists. 
+DIRECTORY_LISTING = false
+
+# Enable to hide files or directories beginning with . from directory listings.
+HIDE_HIDDEN_FILES = false
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "kot"         # Set this to your R2 bucket name. Required
