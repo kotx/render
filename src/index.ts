@@ -90,6 +90,18 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
       td { padding-right: 16px; text-align: right; font-family: monospace }
       td:nth-of-type(1) { text-align: left; }
       th { text-align: left; }
+      @media (prefers-color-scheme: dark) {
+        body {
+          color: white;
+          background-color: #1c1b22;
+        }
+        a {
+          color: #3391ff;
+        }
+        a:visited {
+          color: #C63B65;
+        }
+      }
     </style>
   </head>
   <body>
