@@ -5,6 +5,12 @@ Proxies readonly requests to [Cloudflare R2](https://developers.cloudflare.com/r
 If you see a bug or something missing, please open an issue or pull request!
 
 ## Features
+- File listings (with optional hidden files)!
+
+![screenshot of file listings in light mode](https://user-images.githubusercontent.com/33439542/193165135-1dd935f5-b68b-495a-97cc-9c69c3c0ce01.png)
+![screenshot of file listings in dark mode](https://user-images.githubusercontent.com/33439542/193165189-3cd4b79e-27ea-4397-bb80-f3ccf31185dc.png)
+
+
 - Handles `HEAD`, `GET`, and `OPTIONS` requests
 - Forwards caching headers (`etag`, `cache-control`, `expires`, `last-modified`)
 - Forwards content headers (`content-type`, `content-encoding`, `content-language`, `content-disposition`)
