@@ -37,6 +37,9 @@ DIRECTORY_LISTING = false
 # Enable to hide files or directories beginning with . from directory listings.
 HIDE_HIDDEN_FILES = false
 
+# Set a cache header here, e.g. "max-age=86400", if you want to cache directory listings.
+DIRECTORY_CACHE_CONTROL = "no-store"
+
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "kot"         # Set this to your R2 bucket name. Required
