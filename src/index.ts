@@ -9,6 +9,7 @@ interface Env {
   NOTFOUND_FILE?: string
   DIRECTORY_LISTING?: boolean
   HIDE_HIDDEN_FILES?: boolean
+  DIRECTORY_CACHE_CONTROL?: string
 }
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
@@ -121,7 +122,7 @@ ${htmlList.join("\n")}
       "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
       "last-modified": lastModified === null ? "" : lastModified.toUTCString(),
       "content-type": "text/html",
-      "cache-control": "no-store"
+      "cache-control": env.DIRECTORY_CACHE_CONTROL || "no-store"
     }
   });
 }
@@ -163,7 +164,12 @@ export default {
           // return the dir listing
           let listResponse = await makeListingResponse(path, env, request);
 
-          if (listResponse !== null) return listResponse;
+          if (listResponse !== null) {
+            if (listResponse.headers.get("cache-control") !== "no-store") {
+              ctx.waitUntil(cache.put(request, listResponse.clone()));
+            }
+            return listResponse;
+          }
         }
       }
 
@@ -254,7 +260,12 @@ export default {
           // return the dir listing
           let listResponse = await makeListingResponse(path, env, request);
 
-          if (listResponse !== null) return listResponse;
+          if (listResponse !== null) {
+            if (listResponse.headers.get("cache-control") !== "no-store") {
+              ctx.waitUntil(cache.put(request, listResponse.clone()));
+            }
+            return listResponse;
+          }
         }
 
         if (env.NOTFOUND_FILE && env.NOTFOUND_FILE != "") {
