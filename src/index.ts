@@ -87,6 +87,7 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
 <html>
   <head>
     <title>Index of ${path}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style type="text/css">
       td { padding-right: 16px; text-align: right; font-family: monospace }
       td:nth-of-type(1) { text-align: left; }
