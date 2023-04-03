@@ -84,3 +84,7 @@ To launch the development server:
 ```sh
 npm run dev
 ```
+
+## Notable Forks
+
+- [auravoid](https://github.com/auravoid)'s fork adds [Plausible](https://plausible.io) support.
