@@ -1,6 +1,6 @@
 name = "render"
 main = "src/index.ts"
-compatibility_date = "2022-05-15"
+compatibility_date = "2023-04-02"
 # Set this to false if you don't want to use the default *.workers.dev route.
 # Note that *.workers.dev routes don't support native worker-level caching: https://developers.cloudflare.com/workers/runtime-apis/cache/
 workers_dev = true
@@ -39,6 +39,11 @@ HIDE_HIDDEN_FILES = false
 
 # Set a cache header here, e.g. "max-age=86400", if you want to cache directory listings.
 DIRECTORY_CACHE_CONTROL = "no-store"
+
+# Plausible Analytics URL
+# Optional, if the URL is not set, it will not be enabled.
+PLAUSIBLE_URL = ""
+#PLAUSIBLE_URL = "https://plausible.io/"
 
 [[r2_buckets]]
 binding = "R2_BUCKET"

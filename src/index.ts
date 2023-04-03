@@ -10,6 +10,7 @@ interface Env {
   DIRECTORY_LISTING?: boolean
   HIDE_HIDDEN_FILES?: boolean
   DIRECTORY_CACHE_CONTROL?: string
+  PLAUSIBLE_URL?: string
 }
 
 type ParsedRange = { offset: number, length: number } | { suffix: number };
@@ -307,6 +308,27 @@ export default {
 
       if (request.method === "GET" && !range && isCachingEnabled && !notFound)
         ctx.waitUntil(cache.put(request, response.clone()));
+
+      // Plausible Analytics (https://plausible.io)
+      if (typeof env.PLAUSIBLE_URL === "string" && env.PLAUSIBLE_URL !== "") {
+        const plausibleUrl = env.PLAUSIBLE_URL + '/api/event'
+        const headers = new Headers()
+        headers.append('User-Agent', request.headers.get('User-Agent') as string)
+        headers.append(
+          'X-Forwarded-For',
+          request.headers.get('X-Forwarded-For') as string,
+        )
+        headers.append('Content-Type', 'application/json')
+
+        const data = {
+          name: 'pageview',
+          url: request.url,
+          domain: new URL(request.url).hostname,
+          referrer: request.headers.get('Referer') || request.headers.get('Referrer') || '',
+        }
+
+        ctx.waitUntil(fetch(plausibleUrl, { method: 'POST', headers, body: JSON.stringify(data) }));
+      }
     }
 
     return response;

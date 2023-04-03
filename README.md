@@ -84,3 +84,7 @@ To launch the development server:
 ```sh
 npm run dev
 ```
+
+## Plausible Analytics
+
+To get statistics with Plausible Analytics, change the `PLAUSIBLE_URL` secret to the URL of your Plausible instance. For example, `https://plausible.io/`.
