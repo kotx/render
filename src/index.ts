@@ -174,7 +174,7 @@ export default {
         }
       }
 
-      if (path !== "/") {
+      if (path !== "/" && path.startsWith("/")) {
         path = path.substring(1);
       }
 
