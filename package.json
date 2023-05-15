@@ -1,6 +1,6 @@
 {
   "name": "render2",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "author": "kotx",
   "description": "A Cloudflare worker for proxying readonly requests to Cloudflare R2",
   "license": "MIT",
