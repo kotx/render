@@ -80,7 +80,7 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
       htmlList.push(
         `      <tr>` +
         `<td><a href="${encodeURIComponent(name)}">${name}</a></td>` +
-        `<td class="wrapme">${dateStr}</td><td>${niceBytes(file.size)}</td></tr>`);
+        `<td>${dateStr}</td><td>${niceBytes(file.size)}</td></tr>`);
 
       if (lastModified == null || file.uploaded > lastModified) {
         lastModified = file.uploaded;
