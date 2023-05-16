@@ -72,10 +72,15 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
     for (let file of listing.objects) {
       let name = file.key.substring(path.length, file.key.length)
       if (name.startsWith(".") && env.HIDE_HIDDEN_FILES) continue;
+
+      let dateStr = file.uploaded.toISOString()
+      dateStr = dateStr.split('.')[0].replace('T', ' ')
+      dateStr = dateStr.slice(0, dateStr.lastIndexOf(':')) + 'Z'
+
       htmlList.push(
         `      <tr>` +
         `<td><a href="${encodeURIComponent(name)}">${name}</a></td>` +
-        `<td class="wrapme">${file.uploaded.toISOString().split('.')[0].replace('T', ' ').slice(0, file.uploaded.toISOString().lastIndexOf(':')) + 'Z'}</td><td>${niceBytes(file.size)}</td></tr>`);
+        `<td class="wrapme">${dateStr}</td><td>${niceBytes(file.size)}</td></tr>`);
 
       if (lastModified == null || file.uploaded > lastModified) {
         lastModified = file.uploaded;
@@ -94,7 +99,7 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
     <style type="text/css">
       td { padding-right: 16px; text-align: right; font-family: monospace }
       td#wrapme {;}
-      td:nth-of-type(1) { text-align: left; overflow-wrap: anywhere}
+      td:nth-of-type(1) { text-align: left; overflow-wrap: anywhere }
       td:nth-of-type(3) { white-space: nowrap }
       th { text-align: left; }
       @media (prefers-color-scheme: dark) {
