@@ -46,7 +46,9 @@ You may edit `CACHE_CONTROL` to the default [`cache-control` header](https://dev
 ### Deploying
 
 Note: Due to how custom domains for workers work, you MUST use a route to take advantage of caching. Cloudflare may fix this soon.
-Also note that *.workers.dev domains do not cache responses. You MUST use a route to your own (sub)domain.
+Also note that \*.workers.dev domains do not cache responses. You MUST use a route to your own (sub)domain.
+
+If you want to deploy render with multiple domains for one worker, check out [multi-render](https://github.com/Erisa/multi-render)! It uses render [as a package](#using-as-a-package) to serve multiple buckets to multiple domains with custom configurations.
 
 #### Method 1 (Local)
 ```sh
@@ -72,6 +74,8 @@ Usage:
 import render from "render2";
 render.fetch(req, env, ctx);
 ```
+
+You can see an awesome example with [Erisa](https://github.com/Erisa)'s [multi-render](https://github.com/Erisa/multi-render)!
 
 ## Development
 
