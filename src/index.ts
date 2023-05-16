@@ -98,7 +98,6 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
     <meta charset="utf-8">
     <style type="text/css">
       td { padding-right: 16px; text-align: right; font-family: monospace }
-      td#wrapme {;}
       td:nth-of-type(1) { text-align: left; overflow-wrap: anywhere }
       td:nth-of-type(3) { white-space: nowrap }
       th { text-align: left; }
