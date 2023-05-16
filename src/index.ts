@@ -95,6 +95,7 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
       td { padding-right: 16px; text-align: right; font-family: monospace }
       td#wrapme {;}
       td:nth-of-type(1) { text-align: left; overflow-wrap: anywhere}
+      td:nth-of-type(3) { white-space: nowrap }
       th { text-align: left; }
       @media (prefers-color-scheme: dark) {
         body {
@@ -325,5 +326,5 @@ function niceBytes(x: number) {
     n = n / 1000;
   }
 
-  return (n.toFixed(n < 10 && l > 0 ? 1 : 0) + '' + units[l]);
+  return (n.toFixed(n < 10 && l > 0 ? 1 : 0) + ' ' + units[l]);
 }
