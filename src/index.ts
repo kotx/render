@@ -75,7 +75,7 @@ async function makeListingResponse(path: string, env: Env, request: Request): Pr
       htmlList.push(
         `      <tr>` +
         `<td><a href="${encodeURIComponent(name)}">${name}</a></td>` +
-        `<td class="wrapme">${file.uploaded.toISOString().split('.')[0].replace('T', ' ') + 'Z'}</td><td>${niceBytes(file.size)}</td></tr>`);
+        `<td class="wrapme">${file.uploaded.toISOString().split('.')[0].replace('T', ' ').slice(0, file.uploaded.toISOString().lastIndexOf(':')) + 'Z'}</td><td>${niceBytes(file.size)}</td></tr>`);
 
       if (lastModified == null || file.uploaded > lastModified) {
         lastModified = file.uploaded;
