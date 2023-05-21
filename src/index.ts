@@ -1,6 +1,6 @@
 import parseRange from "range-parser";
 
-interface Env {
+export interface Env {
   R2_BUCKET: R2Bucket,
   ALLOWED_ORIGINS?: string,
   CACHE_CONTROL?: string,
