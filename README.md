@@ -2,6 +2,8 @@
 
 Proxies readonly requests to [Cloudflare R2](https://developers.cloudflare.com/r2) via [Cloudflare Workers](https://workers.dev).
 
+If you want an uploader, try [Aster](https://github.com/kotx/aster)!
+
 If you see a bug or something missing, please open an issue or pull request!
 
 ## Features
