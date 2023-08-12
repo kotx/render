@@ -60,7 +60,8 @@ wrangler publish # or `npm run deploy`
 
 #### Method 2 (GitHub Actions)
 1. Fork this repository
-2. Set the secrets [`CF_API_TOKEN`](https://dash.cloudflare.com/profile/api-tokens) (with `Worker Scripts: Edit` permissions) and `CF_ACCOUNT_ID` in the repo settings
+2. Set the secrets [`CF_API_TOKEN`](https://dash.cloudflare.com/profile/api-tokens) (with the `Edit Cloudflare Workers	
+` template) and `CF_ACCOUNT_ID` in the repo settings
 3. Enable workflows in the Actions tab
 4. Update `wrangler.toml` as needed (this will trigger the workflow)
 5. (Optionally) set the worker route in the Cloudflare dashboard to use the Cache API
