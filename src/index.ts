@@ -140,7 +140,9 @@ ${htmlList.join("\n")}
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const allowedMethods = ["GET", "HEAD", "OPTIONS"];
-    if (allowedMethods.indexOf(request.method) === -1) return new Response("Method Not Allowed", { status: 405 });
+    if (allowedMethods.indexOf(request.method) === -1) {
+      return new Response("Method Not Allowed", { status: 405, headers: { "allow": allowedMethods.join(", ") } });
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: { "allow": allowedMethods.join(", ") } })
