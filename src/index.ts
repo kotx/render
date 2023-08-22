@@ -148,7 +148,6 @@ export default {
 
     let triedIndex = false;
 
-    const url = new URL(request.url);
     let response: Response | undefined;
 
     const isCachingEnabled = env.CACHE_CONTROL !== "no-store"
@@ -162,6 +161,7 @@ export default {
 
     if (!response || !(response.ok || response.status == 304)) {
       console.warn("Cache miss");
+      const url = new URL(request.url);
       let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname);
 
       // directory logic
