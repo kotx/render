@@ -28,8 +28,9 @@ If you see a bug or something missing, please open an issue or pull request!
 
 Create your R2 bucket(s) if you haven't already (replace `bucket_name` and `preview_bucket_name` appropriately):
 ```sh
-wrangler r2 bucket create bucket_name # required
-wrangler r2 bucket create preview_bucket_name # optional
+pnpm install
+pnpm wrangler r2 bucket create bucket_name # required
+pnpm wrangler r2 bucket create preview_bucket_name # optional
 ```
 You can also do this from the [Cloudflare dashboard](https://dash.cloudflare.com/?to=/:account/r2/buckets/new).
 
@@ -47,8 +48,7 @@ If you want to deploy render with multiple domains for one worker, check out [mu
 
 #### Method 1 (Local)
 ```sh
-pnpm install
-npx wrangler publish # or `pnpm run deploy`
+pnpm wrangler publish # or `pnpm run deploy`
 ```
 
 #### Method 2 (GitHub Actions)
