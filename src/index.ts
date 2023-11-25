@@ -164,7 +164,7 @@ export default {
 
     if (!response || !(response.ok || response.status == 304)) {
       if (env.LOGGING) {
-        console.warn("Cache miss");
+        console.warn("Cache MISS for", request.url);
       }
       const url = new URL(request.url);
       let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname);
@@ -321,6 +321,10 @@ export default {
 
       if (request.method === "GET" && !range && isCachingEnabled && !notFound)
         ctx.waitUntil(cache.put(request, response.clone()));
+    } else {
+      if (env.LOGGING) {
+        console.warn("Cache HIT for", request.url);
+      }
     }
 
     return response;
