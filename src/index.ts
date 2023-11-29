@@ -10,6 +10,7 @@ export interface Env {
   DIRECTORY_LISTING?: boolean
   HIDE_HIDDEN_FILES?: boolean
   DIRECTORY_CACHE_CONTROL?: string
+  LOGGING?: boolean
 }
 
 const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -33,7 +34,7 @@ function getRangeHeader(range: ParsedRange, fileSize: number): string {
     (range.offset + range.length - 1)}/${fileSize}`;
 }
 
-// some ideas for this were taken from / inspired by 
+// some ideas for this were taken from / inspired by
 // https://github.com/cloudflare/workerd/blob/main/samples/static-files-from-disk/static.js
 async function makeListingResponse(path: string, env: Env, request: Request): Promise<Response | null> {
   if (path === "/")
@@ -162,7 +163,9 @@ export default {
     let range: ParsedRange | undefined;
 
     if (!response || !(response.ok || response.status == 304)) {
-      console.warn("Cache miss");
+      if (env.LOGGING) {
+        console.warn("Cache MISS for", request.url);
+      }
       const url = new URL(request.url);
       let path = (env.PATH_PREFIX || "") + decodeURIComponent(url.pathname);
 
@@ -318,6 +321,10 @@ export default {
 
       if (request.method === "GET" && !range && isCachingEnabled && !notFound)
         ctx.waitUntil(cache.put(request, response.clone()));
+    } else {
+      if (env.LOGGING) {
+        console.warn("Cache HIT for", request.url);
+      }
     }
 
     return response;

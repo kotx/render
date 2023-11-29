@@ -31,7 +31,7 @@ NOTFOUND_FILE = ""
 #NOT_FOUND_FILE = "404.html"
 
 # Enable to show a directory listing fallback on paths ending in /
-# If INDEX_FILE is also provided, it will be used instead if the file exists. 
+# If INDEX_FILE is also provided, it will be used instead if the file exists.
 DIRECTORY_LISTING = false
 
 # Enable to hide files or directories beginning with . from directory listings.
@@ -39,6 +39,9 @@ HIDE_HIDDEN_FILES = false
 
 # Set a cache header here, e.g. "max-age=86400", if you want to cache directory listings.
 DIRECTORY_CACHE_CONTROL = "no-store"
+
+# Set debugging log enabled
+LOGGING = true
 
 [[r2_buckets]]
 binding = "R2_BUCKET"
