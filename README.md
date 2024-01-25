@@ -85,6 +85,7 @@ To launch the development server:
 pnpm run dev
 ```
 
-## Notable Forks
+## Notable Related Projects
 
-- [auravoid](https://github.com/auravoid)'s fork adds [Plausible](https://plausible.io) support.
+- [auravoid](https://github.com/auravoid)'s [fork](https://github.com/auravoid/render) adds [Plausible](https://plausible.io) support.
+- [Erisa](https://github.com/Erisa)'s project [multi-render](https://github.com/erisa/multi-render) add support for domain-specific configurations.
