@@ -34,6 +34,11 @@ NOTFOUND_FILE = ""
 # If INDEX_FILE is also provided, it will be used instead if the file exists.
 DIRECTORY_LISTING = false
 
+# The number of items to show per page in directory listings.
+# Listings may also return less if the listing API call reaches a size limit.
+# Maximum of 1000.
+ITEMS_PER_PAGE = 1000
+
 # Enable to hide files or directories beginning with . from directory listings.
 HIDE_HIDDEN_FILES = false
 
