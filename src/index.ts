@@ -120,7 +120,7 @@ async function makeListingResponse(
     <title>Index of ${path}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
-    <style type="text/css">
+    <style>
       td { padding-right: 16px; text-align: right; font-family: monospace }
       td:nth-of-type(1) { text-align: left; overflow-wrap: anywhere }
       td:nth-of-type(3) { white-space: nowrap }
