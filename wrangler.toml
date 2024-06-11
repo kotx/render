@@ -52,4 +52,4 @@ LOGGING = true
 binding = "R2_BUCKET"
 bucket_name = "kot"         # Set this to your R2 bucket name. Required
 preview_bucket_name = "kot" # Set this to your preview R2 bucket name. Can be equal to bucket_name. Optional
-#jurisdiction = "eu"        # Set this to "eu" or "us". Optional if the buket has no jurisdiction restrictions
+#jurisdiction = "eu"        # Set this to "eu" or "us". Optional if the bucket has no jurisdiction restrictions
