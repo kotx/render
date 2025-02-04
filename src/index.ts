@@ -358,13 +358,14 @@ export default {
         }
       }
 
+      // Content-Length handling
       let body;
-      let contentLength = file.size !== 0 ? file.size : "";
+      let contentLength = file.size;
       if (hasBody(file) && file.size !== 0) {
         if (range && !notFound) {
-          contentLength = rangeHasLength(range) ? range.length : range.suffix
+          contentLength = rangeHasLength(range) ? range.length : range.suffix;
         }
-        let {readable, writable} = new FixedLengthStream(contentLength);
+        let { readable, writable } = new FixedLengthStream(contentLength);
         file.body.pipeTo(writable);
         body = readable;
       }
