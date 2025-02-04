@@ -1,6 +1,6 @@
 {
   "name": "render2",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "author": "kotx",
   "description": "A Cloudflare worker for proxying readonly requests to Cloudflare R2",
   "license": "MIT",
@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "dev": "wrangler dev --remote",
-    "deploy": "wrangler publish",
+    "deploy": "wrangler deploy",
     "prepublishOnly": "tsc"
   },
   "devDependencies": {
