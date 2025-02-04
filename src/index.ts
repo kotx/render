@@ -358,8 +358,18 @@ export default {
         }
       }
 
-      response = new Response(
-        hasBody(file) && file.size !== 0 ? file.body : null,
+      // Content-Length handling
+      let body;
+      let contentLength = file.size;
+      if (hasBody(file) && file.size !== 0) {
+        if (range && !notFound) {
+          contentLength = rangeHasLength(range) ? range.length : range.suffix;
+        }
+        let { readable, writable } = new FixedLengthStream(contentLength);
+        file.body.pipeTo(writable);
+        body = readable;
+      }
+      response = new Response(body,
         {
           status: notFound ? 404 : range ? 206 : 200,
           headers: {
@@ -381,12 +391,7 @@ export default {
             "content-disposition": file.httpMetadata?.contentDisposition ?? "",
             "content-range":
               range && !notFound ? getRangeHeader(range, file.size) : "",
-            "content-length": (range && !notFound
-              ? rangeHasLength(range)
-                ? range.length
-                : range.suffix
-              : file.size
-            ).toString(),
+            "content-length": contentLength.toString(),
           },
         }
       );
