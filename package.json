@@ -1,6 +1,6 @@
 {
   "name": "render2",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "author": "kotx",
   "description": "A Cloudflare worker for proxying readonly requests to Cloudflare R2",
   "license": "MIT",
@@ -15,10 +15,10 @@
     "prepublishOnly": "tsc"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250204.0",
+    "@cloudflare/workers-types": "^4.20250422.0",
     "@types/range-parser": "^1.2.7",
-    "typescript": "^5.7.3",
-    "wrangler": "^3.107.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.12.1"
   },
   "dependencies": {
     "range-parser": "^1.2.1"
