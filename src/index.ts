@@ -12,6 +12,7 @@ export interface Env {
   HIDE_HIDDEN_FILES?: boolean;
   DIRECTORY_CACHE_CONTROL?: string;
   LOGGING?: boolean;
+  R2_RETRIES?: number;
 }
 
 const units = ["B", "KB", "MB", "GB", "TB"];
@@ -161,6 +162,40 @@ ${htmlList.join("\n")}
   });
 }
 
+async function r2HeadWithRetry(env: Env, path: string): Promise<R2Object | null> {
+  let file: R2Object | null = null
+  let attempts = 0;
+  let maxAttempts = env.R2_RETRIES && env.R2_RETRIES >= 0 ? env.R2_RETRIES : 3;
+  do {
+    try {
+      file = await env.R2_BUCKET.head(path);
+      break;
+    } catch (err) {
+      attempts++;
+      if (attempts === maxAttempts) throw err;
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+    }
+  } while (attempts < maxAttempts)
+  return file
+}
+
+async function r2GetWithRetry(env: Env, path: string, options?: R2GetOptions): Promise<R2ObjectBody | R2Object | null> {
+  let file: R2Object | null = null
+  let attempts = 0;
+  let maxAttempts = env.R2_RETRIES && env.R2_RETRIES >= 0 ? env.R2_RETRIES : 3;
+  do {
+    try {
+      file = await env.R2_BUCKET.get(path, options);
+      break;
+    } catch (err) {
+      attempts++;
+      if (attempts === maxAttempts) throw err;
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+    }
+  } while (attempts < maxAttempts)
+  return file
+}
+
 export default {
   async fetch(
     request: Request,
@@ -230,7 +265,7 @@ export default {
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          file = await env.R2_BUCKET.head(path);
+          file = await r2HeadWithRetry(env, path);
           if (file === null)
             return new Response("File Not Found", { status: 404 });
           const parsedRanges = parseRange(file.size, rangeHeader);
@@ -282,7 +317,7 @@ export default {
       }
 
       if (ifMatch || ifUnmodifiedSince) {
-        file = await env.R2_BUCKET.get(path, {
+        file = await r2GetWithRetry(env, path, {
           onlyIf: {
             etagMatches: ifMatch,
             uploadedBefore: ifUnmodifiedSince
@@ -300,12 +335,12 @@ export default {
       if (ifNoneMatch || ifModifiedSince) {
         // if-none-match overrides if-modified-since completely
         if (ifNoneMatch) {
-          file = await env.R2_BUCKET.get(path, {
+          file = await r2GetWithRetry(env, path, {
             onlyIf: { etagDoesNotMatch: ifNoneMatch },
             range,
           });
         } else if (ifModifiedSince) {
-          file = await env.R2_BUCKET.get(path, {
+          file = await r2GetWithRetry(env, path, {
             onlyIf: { uploadedAfter: new Date(ifModifiedSince) },
             range,
           });
@@ -317,16 +352,16 @@ export default {
 
       file =
         request.method === "HEAD"
-          ? await env.R2_BUCKET.head(path)
+          ? await r2HeadWithRetry(env, path)
           : file && hasBody(file)
           ? file
-          : await env.R2_BUCKET.get(path, { range });
+          : await r2GetWithRetry(env, path, { range });
 
       let notFound: boolean = false;
 
       if (file === null) {
         if (env.INDEX_FILE && triedIndex) {
-          // remove the index file since it doesnt exist
+          // remove the index file since it doesn't exist
           path = path.substring(0, path.length - env.INDEX_FILE.length);
         }
 
@@ -347,12 +382,12 @@ export default {
           path = env.NOTFOUND_FILE;
           file =
             request.method === "HEAD"
-              ? await env.R2_BUCKET.head(path)
-              : await env.R2_BUCKET.get(path);
+              ? await r2HeadWithRetry(env, path)
+              : await r2GetWithRetry(env, path);
         }
 
-        // if its still null, either 404 is disabled or that file wasn't found either
-        // this isn't an else because then there would have to be two of theem
+        // if it's still null, either 404 is disabled or that file wasn't found either
+        // this isn't an else because then there would have to be two of them
         if (file == null) {
           return new Response("File Not Found", { status: 404 });
         }
