@@ -12,6 +12,7 @@ export interface Env {
   HIDE_HIDDEN_FILES?: boolean;
   DIRECTORY_CACHE_CONTROL?: string;
   LOGGING?: boolean;
+  R2_RETRIES?: number;
 }
 
 const units = ["B", "KB", "MB", "GB", "TB"];
@@ -161,6 +162,28 @@ ${htmlList.join("\n")}
   });
 }
 
+async function retryAsync<T>(env: Env, fn: () => Promise<T>): Promise<T> {
+  const maxAttempts = env.R2_RETRIES || 0;
+  let attempts = 0;
+
+  while (maxAttempts == -1 || attempts <= maxAttempts) {
+    try {
+      return await fn();
+    } catch (err) {
+      attempts++;
+      if (env.LOGGING) console.error(`Attempt ${attempts} failed:`, err);
+
+      if (attempts <= maxAttempts) {
+        const delay = Math.min(1000 * Math.pow(2, attempts - 1), 30000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error("unreachable");
+}
+
 export default {
   async fetch(
     request: Request,
@@ -230,7 +253,7 @@ export default {
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          file = await env.R2_BUCKET.head(path);
+          file = await retryAsync(env, () => env.R2_BUCKET.head(path));
           if (file === null)
             return new Response("File Not Found", { status: 404 });
           const parsedRanges = parseRange(file.size, rangeHeader);
@@ -282,15 +305,17 @@ export default {
       }
 
       if (ifMatch || ifUnmodifiedSince) {
-        file = await env.R2_BUCKET.get(path, {
-          onlyIf: {
-            etagMatches: ifMatch,
-            uploadedBefore: ifUnmodifiedSince
-              ? new Date(ifUnmodifiedSince)
-              : undefined,
-          },
-          range,
-        });
+        file = await retryAsync(env, () =>
+          env.R2_BUCKET.get(path, {
+            onlyIf: {
+              etagMatches: ifMatch,
+              uploadedBefore: ifUnmodifiedSince
+                ? new Date(ifUnmodifiedSince)
+                : undefined,
+            },
+            range,
+          })
+        );
 
         if (file && !hasBody(file)) {
           return new Response("Precondition Failed", { status: 412 });
@@ -300,15 +325,19 @@ export default {
       if (ifNoneMatch || ifModifiedSince) {
         // if-none-match overrides if-modified-since completely
         if (ifNoneMatch) {
-          file = await env.R2_BUCKET.get(path, {
-            onlyIf: { etagDoesNotMatch: ifNoneMatch },
-            range,
-          });
+          file = await retryAsync(env, () =>
+            env.R2_BUCKET.get(path, {
+              onlyIf: { etagDoesNotMatch: ifNoneMatch },
+              range,
+            })
+          );
         } else if (ifModifiedSince) {
-          file = await env.R2_BUCKET.get(path, {
-            onlyIf: { uploadedAfter: new Date(ifModifiedSince) },
-            range,
-          });
+          file = await retryAsync(env, () =>
+            env.R2_BUCKET.get(path, {
+              onlyIf: { uploadedAfter: new Date(ifModifiedSince) },
+              range,
+            })
+          );
         }
         if (file && !hasBody(file)) {
           return new Response(null, { status: 304 });
@@ -317,16 +346,16 @@ export default {
 
       file =
         request.method === "HEAD"
-          ? await env.R2_BUCKET.head(path)
+          ? await retryAsync(env, () => env.R2_BUCKET.head(path))
           : file && hasBody(file)
           ? file
-          : await env.R2_BUCKET.get(path, { range });
+          : await retryAsync(env, () => env.R2_BUCKET.get(path, { range }));
 
       let notFound: boolean = false;
 
       if (file === null) {
         if (env.INDEX_FILE && triedIndex) {
-          // remove the index file since it doesnt exist
+          // remove the index file since it doesn't exist
           path = path.substring(0, path.length - env.INDEX_FILE.length);
         }
 
@@ -347,12 +376,12 @@ export default {
           path = env.NOTFOUND_FILE;
           file =
             request.method === "HEAD"
-              ? await env.R2_BUCKET.head(path)
-              : await env.R2_BUCKET.get(path);
+              ? await retryAsync(env, () => env.R2_BUCKET.head(path))
+              : await retryAsync(env, () => env.R2_BUCKET.get(path));
         }
 
-        // if its still null, either 404 is disabled or that file wasn't found either
-        // this isn't an else because then there would have to be two of theem
+        // if it's still null, either 404 is disabled or that file wasn't found either
+        // this isn't an else because then there would have to be two of them
         if (file == null) {
           return new Response("File Not Found", { status: 404 });
         }
@@ -369,32 +398,30 @@ export default {
         file.body.pipeTo(writable);
         body = readable;
       }
-      response = new Response(body,
-        {
-          status: notFound ? 404 : range ? 206 : 200,
-          headers: {
-            "accept-ranges": "bytes",
-            "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
+      response = new Response(body, {
+        status: notFound ? 404 : range ? 206 : 200,
+        headers: {
+          "accept-ranges": "bytes",
+          "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
 
-            etag: notFound ? "" : file.httpEtag,
-            // if the 404 file has a custom cache control, we respect it
-            "cache-control":
-              file.httpMetadata?.cacheControl ??
-              (notFound ? "" : env.CACHE_CONTROL || ""),
-            expires: file.httpMetadata?.cacheExpiry?.toUTCString() ?? "",
-            "last-modified": notFound ? "" : file.uploaded.toUTCString(),
+          etag: notFound ? "" : file.httpEtag,
+          // if the 404 file has a custom cache control, we respect it
+          "cache-control":
+            file.httpMetadata?.cacheControl ??
+            (notFound ? "" : env.CACHE_CONTROL || ""),
+          expires: file.httpMetadata?.cacheExpiry?.toUTCString() ?? "",
+          "last-modified": notFound ? "" : file.uploaded.toUTCString(),
 
-            "content-encoding": file.httpMetadata?.contentEncoding ?? "",
-            "content-type":
-              file.httpMetadata?.contentType ?? "application/octet-stream",
-            "content-language": file.httpMetadata?.contentLanguage ?? "",
-            "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-            "content-range":
-              range && !notFound ? getRangeHeader(range, file.size) : "",
-            "content-length": contentLength.toString(),
-          },
-        }
-      );
+          "content-encoding": file.httpMetadata?.contentEncoding ?? "",
+          "content-type":
+            file.httpMetadata?.contentType ?? "application/octet-stream",
+          "content-language": file.httpMetadata?.contentLanguage ?? "",
+          "content-disposition": file.httpMetadata?.contentDisposition ?? "",
+          "content-range":
+            range && !notFound ? getRangeHeader(range, file.size) : "",
+          "content-length": contentLength.toString(),
+        },
+      });
 
       if (request.method === "GET" && !range && isCachingEnabled && !notFound)
         ctx.waitUntil(cache.put(request, response.clone()));
