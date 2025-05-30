@@ -163,18 +163,17 @@ ${htmlList.join("\n")}
 }
 
 async function retryPromise<T>(env: Env, promise: Promise<T>): Promise<T> {
-  const MAX_RETRIES =
-    env.R2_RETRIES && env.R2_RETRIES >= 0 ? env.R2_RETRIES : 0;
+  const maxAttempts = env.R2_RETRIES || 0;
   let attempts = 0;
 
-  while (attempts <= MAX_RETRIES) {
+  while (attempts <= maxAttempts) {
     try {
       return await promise;
     } catch (err) {
       attempts++;
       if (env.LOGGING) console.error(`Attempt ${attempts} failed:`, err);
 
-      if (attempts <= MAX_RETRIES) {
+      if (attempts <= maxAttempts) {
         const delay = Math.min(1000 * Math.pow(2, attempts - 1), 30000);
         await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
