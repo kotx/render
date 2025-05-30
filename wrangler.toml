@@ -45,8 +45,14 @@ HIDE_HIDDEN_FILES = false
 # Set a cache header here, e.g. "max-age=86400", if you want to cache directory listings.
 DIRECTORY_CACHE_CONTROL = "no-store"
 
-# Set debugging log enabled
+# Set debugging log enabled.
 LOGGING = true
+
+# Set the number of retries allowed for each R2 operation (-1 for unlimited).
+R2_RETRIES = 0
+
+[observability]
+enabled = true
 
 [[r2_buckets]]
 binding = "R2_BUCKET"
