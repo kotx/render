@@ -162,38 +162,27 @@ ${htmlList.join("\n")}
   });
 }
 
-async function r2HeadWithRetry(env: Env, path: string): Promise<R2Object | null> {
-  let file: R2Object | null = null
+async function retryPromise<T>(env: Env, promise: Promise<T>): Promise<T> {
+  const MAX_RETRIES =
+    env.R2_RETRIES && env.R2_RETRIES >= 0 ? env.R2_RETRIES : 0;
   let attempts = 0;
-  let maxAttempts = env.R2_RETRIES && env.R2_RETRIES >= 0 ? env.R2_RETRIES : 3;
-  do {
-    try {
-      file = await env.R2_BUCKET.head(path);
-      break;
-    } catch (err) {
-      attempts++;
-      if (attempts === maxAttempts) throw err;
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-    }
-  } while (attempts < maxAttempts)
-  return file
-}
 
-async function r2GetWithRetry(env: Env, path: string, options?: R2GetOptions): Promise<R2ObjectBody | R2Object | null> {
-  let file: R2Object | null = null
-  let attempts = 0;
-  let maxAttempts = env.R2_RETRIES && env.R2_RETRIES >= 0 ? env.R2_RETRIES : 3;
-  do {
+  while (attempts <= MAX_RETRIES) {
     try {
-      file = await env.R2_BUCKET.get(path, options);
-      break;
+      return await promise;
     } catch (err) {
       attempts++;
-      if (attempts === maxAttempts) throw err;
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+      if (env.LOGGING) console.error(`Attempt ${attempts} failed:`, err);
+
+      if (attempts <= MAX_RETRIES) {
+        const delay = Math.min(1000 * Math.pow(2, attempts - 1), 30000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      } else {
+        throw err;
+      }
     }
-  } while (attempts < maxAttempts)
-  return file
+  }
+  throw new Error("unreachable");
 }
 
 export default {
@@ -265,7 +254,7 @@ export default {
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          file = await r2HeadWithRetry(env, path);
+          file = await retryPromise(env, env.R2_BUCKET.head(path));
           if (file === null)
             return new Response("File Not Found", { status: 404 });
           const parsedRanges = parseRange(file.size, rangeHeader);
@@ -317,15 +306,18 @@ export default {
       }
 
       if (ifMatch || ifUnmodifiedSince) {
-        file = await r2GetWithRetry(env, path, {
-          onlyIf: {
-            etagMatches: ifMatch,
-            uploadedBefore: ifUnmodifiedSince
-              ? new Date(ifUnmodifiedSince)
-              : undefined,
-          },
-          range,
-        });
+        file = await retryPromise(
+          env,
+          env.R2_BUCKET.get(path, {
+            onlyIf: {
+              etagMatches: ifMatch,
+              uploadedBefore: ifUnmodifiedSince
+                ? new Date(ifUnmodifiedSince)
+                : undefined,
+            },
+            range,
+          })
+        );
 
         if (file && !hasBody(file)) {
           return new Response("Precondition Failed", { status: 412 });
@@ -335,15 +327,21 @@ export default {
       if (ifNoneMatch || ifModifiedSince) {
         // if-none-match overrides if-modified-since completely
         if (ifNoneMatch) {
-          file = await r2GetWithRetry(env, path, {
-            onlyIf: { etagDoesNotMatch: ifNoneMatch },
-            range,
-          });
+          file = await retryPromise(
+            env,
+            env.R2_BUCKET.get(path, {
+              onlyIf: { etagDoesNotMatch: ifNoneMatch },
+              range,
+            })
+          );
         } else if (ifModifiedSince) {
-          file = await r2GetWithRetry(env, path, {
-            onlyIf: { uploadedAfter: new Date(ifModifiedSince) },
-            range,
-          });
+          file = await retryPromise(
+            env,
+            env.R2_BUCKET.get(path, {
+              onlyIf: { uploadedAfter: new Date(ifModifiedSince) },
+              range,
+            })
+          );
         }
         if (file && !hasBody(file)) {
           return new Response(null, { status: 304 });
@@ -352,10 +350,10 @@ export default {
 
       file =
         request.method === "HEAD"
-          ? await r2HeadWithRetry(env, path)
+          ? await retryPromise(env, env.R2_BUCKET.head(path))
           : file && hasBody(file)
           ? file
-          : await r2GetWithRetry(env, path, { range });
+          : await retryPromise(env, env.R2_BUCKET.get(path, { range }));
 
       let notFound: boolean = false;
 
@@ -382,8 +380,8 @@ export default {
           path = env.NOTFOUND_FILE;
           file =
             request.method === "HEAD"
-              ? await r2HeadWithRetry(env, path)
-              : await r2GetWithRetry(env, path);
+              ? await retryPromise(env, env.R2_BUCKET.head(path))
+              : await retryPromise(env, env.R2_BUCKET.get(path));
         }
 
         // if it's still null, either 404 is disabled or that file wasn't found either
@@ -404,32 +402,30 @@ export default {
         file.body.pipeTo(writable);
         body = readable;
       }
-      response = new Response(body,
-        {
-          status: notFound ? 404 : range ? 206 : 200,
-          headers: {
-            "accept-ranges": "bytes",
-            "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
+      response = new Response(body, {
+        status: notFound ? 404 : range ? 206 : 200,
+        headers: {
+          "accept-ranges": "bytes",
+          "access-control-allow-origin": env.ALLOWED_ORIGINS || "",
 
-            etag: notFound ? "" : file.httpEtag,
-            // if the 404 file has a custom cache control, we respect it
-            "cache-control":
-              file.httpMetadata?.cacheControl ??
-              (notFound ? "" : env.CACHE_CONTROL || ""),
-            expires: file.httpMetadata?.cacheExpiry?.toUTCString() ?? "",
-            "last-modified": notFound ? "" : file.uploaded.toUTCString(),
+          etag: notFound ? "" : file.httpEtag,
+          // if the 404 file has a custom cache control, we respect it
+          "cache-control":
+            file.httpMetadata?.cacheControl ??
+            (notFound ? "" : env.CACHE_CONTROL || ""),
+          expires: file.httpMetadata?.cacheExpiry?.toUTCString() ?? "",
+          "last-modified": notFound ? "" : file.uploaded.toUTCString(),
 
-            "content-encoding": file.httpMetadata?.contentEncoding ?? "",
-            "content-type":
-              file.httpMetadata?.contentType ?? "application/octet-stream",
-            "content-language": file.httpMetadata?.contentLanguage ?? "",
-            "content-disposition": file.httpMetadata?.contentDisposition ?? "",
-            "content-range":
-              range && !notFound ? getRangeHeader(range, file.size) : "",
-            "content-length": contentLength.toString(),
-          },
-        }
-      );
+          "content-encoding": file.httpMetadata?.contentEncoding ?? "",
+          "content-type":
+            file.httpMetadata?.contentType ?? "application/octet-stream",
+          "content-language": file.httpMetadata?.contentLanguage ?? "",
+          "content-disposition": file.httpMetadata?.contentDisposition ?? "",
+          "content-range":
+            range && !notFound ? getRangeHeader(range, file.size) : "",
+          "content-length": contentLength.toString(),
+        },
+      });
 
       if (request.method === "GET" && !range && isCachingEnabled && !notFound)
         ctx.waitUntil(cache.put(request, response.clone()));
