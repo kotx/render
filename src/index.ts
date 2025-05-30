@@ -162,13 +162,17 @@ ${htmlList.join("\n")}
   });
 }
 
-async function retryPromise<T>(env: Env, promise: Promise<T>): Promise<T> {
+async function retryAsync<T>(
+  env: Env,
+  fn: (...args: any[]) => Promise<T>,
+  ...args: any[]
+): Promise<T> {
   const maxAttempts = env.R2_RETRIES || 0;
   let attempts = 0;
 
-  while (attempts <= maxAttempts) {
+  while (maxAttempts == -1 || attempts <= maxAttempts) {
     try {
-      return await promise;
+      return await fn(...args);
     } catch (err) {
       attempts++;
       if (env.LOGGING) console.error(`Attempt ${attempts} failed:`, err);
@@ -253,7 +257,11 @@ export default {
       if (request.method === "GET") {
         const rangeHeader = request.headers.get("range");
         if (rangeHeader) {
-          file = await retryPromise(env, env.R2_BUCKET.head(path));
+          file = await retryAsync(
+            env,
+            env.R2_BUCKET.head.bind(env.R2_BUCKET),
+            path
+          );
           if (file === null)
             return new Response("File Not Found", { status: 404 });
           const parsedRanges = parseRange(file.size, rangeHeader);
@@ -305,9 +313,11 @@ export default {
       }
 
       if (ifMatch || ifUnmodifiedSince) {
-        file = await retryPromise(
+        file = await retryAsync(
           env,
-          env.R2_BUCKET.get(path, {
+          env.R2_BUCKET.get.bind(env.R2_BUCKET),
+          path,
+          {
             onlyIf: {
               etagMatches: ifMatch,
               uploadedBefore: ifUnmodifiedSince
@@ -315,7 +325,7 @@ export default {
                 : undefined,
             },
             range,
-          })
+          }
         );
 
         if (file && !hasBody(file)) {
@@ -326,20 +336,24 @@ export default {
       if (ifNoneMatch || ifModifiedSince) {
         // if-none-match overrides if-modified-since completely
         if (ifNoneMatch) {
-          file = await retryPromise(
+          file = await retryAsync(
             env,
-            env.R2_BUCKET.get(path, {
+            env.R2_BUCKET.get.bind(env.R2_BUCKET),
+            path,
+            {
               onlyIf: { etagDoesNotMatch: ifNoneMatch },
               range,
-            })
+            }
           );
         } else if (ifModifiedSince) {
-          file = await retryPromise(
+          file = await retryAsync(
             env,
-            env.R2_BUCKET.get(path, {
+            env.R2_BUCKET.get.bind(env.R2_BUCKET),
+            path,
+            {
               onlyIf: { uploadedAfter: new Date(ifModifiedSince) },
               range,
-            })
+            }
           );
         }
         if (file && !hasBody(file)) {
@@ -349,10 +363,12 @@ export default {
 
       file =
         request.method === "HEAD"
-          ? await retryPromise(env, env.R2_BUCKET.head(path))
+          ? await retryAsync(env, env.R2_BUCKET.head.bind(env.R2_BUCKET), path)
           : file && hasBody(file)
           ? file
-          : await retryPromise(env, env.R2_BUCKET.get(path, { range }));
+          : await retryAsync(env, env.R2_BUCKET.get.bind(env.R2_BUCKET), path, {
+              range,
+            });
 
       let notFound: boolean = false;
 
@@ -379,8 +395,16 @@ export default {
           path = env.NOTFOUND_FILE;
           file =
             request.method === "HEAD"
-              ? await retryPromise(env, env.R2_BUCKET.head(path))
-              : await retryPromise(env, env.R2_BUCKET.get(path));
+              ? await retryAsync(
+                  env,
+                  env.R2_BUCKET.head.bind(env.R2_BUCKET),
+                  path
+                )
+              : await retryAsync(
+                  env,
+                  env.R2_BUCKET.get.bind(env.R2_BUCKET),
+                  path
+                );
         }
 
         // if it's still null, either 404 is disabled or that file wasn't found either
