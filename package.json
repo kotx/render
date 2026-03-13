@@ -15,10 +15,10 @@
     "prepublishOnly": "tsc"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250529.0",
+    "@cloudflare/workers-types": "^4.20260313.1",
     "@types/range-parser": "^1.2.7",
-    "typescript": "^5.8.3",
-    "wrangler": "^4.18.0"
+    "typescript": "^5.9.3",
+    "wrangler": "^4.73.0"
   },
   "dependencies": {
     "range-parser": "^1.2.1"
